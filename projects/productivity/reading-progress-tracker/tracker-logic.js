@@ -250,12 +250,20 @@ function exportTrackerData(books, sessions) {
 function importTrackerData(jsonString) {
   try {
     const parsed = JSON.parse(jsonString);
-    if (!parsed || typeof parsed !== "object") {
-      throw new Error("Invalid JSON data format.");
+
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      throw new Error("Invalid JSON data format. Expected a backup object.");
     }
+
+    if (!Array.isArray(parsed.books) || !Array.isArray(parsed.sessions)) {
+      throw new Error(
+        "Invalid backup format: 'books' and 'sessions' must both be arrays."
+      );
+    }
+
     return {
-      books: Array.isArray(parsed.books) ? parsed.books : [],
-      sessions: Array.isArray(parsed.sessions) ? parsed.sessions : [],
+      books: parsed.books,
+      sessions: parsed.sessions,
     };
   } catch (err) {
     throw new Error(`Import failed: ${err.message}`);

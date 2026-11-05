@@ -195,3 +195,42 @@ test("importTrackerData round-trips export correctly", () => {
 test("importTrackerData throws on invalid JSON", () => {
   assert.throws(() => importTrackerData("not valid json"), /Import failed/);
 });
+
+test("importTrackerData accepts a valid empty backup", () => {
+  const result = importTrackerData(JSON.stringify({ books: [], sessions: [] }));
+  assert.deepEqual(result, { books: [], sessions: [] });
+});
+
+test("importTrackerData rejects backups missing required arrays", () => {
+  assert.throws(
+    () => importTrackerData(JSON.stringify({ sessions: [] })),
+    /books.*sessions.*arrays/i
+  );
+  assert.throws(
+    () => importTrackerData(JSON.stringify({ books: [] })),
+    /books.*sessions.*arrays/i
+  );
+});
+
+test("importTrackerData rejects incorrectly typed backup arrays", () => {
+  const invalidBackups = [
+    { books: {}, sessions: [] },
+    { books: [], sessions: {} },
+    { books: null, sessions: [] },
+    { books: [], sessions: null },
+    { books: "not an array", sessions: [] },
+    { books: [], sessions: "not an array" },
+  ];
+
+  for (const backup of invalidBackups) {
+    assert.throws(
+      () => importTrackerData(JSON.stringify(backup)),
+      /books.*sessions.*arrays/i
+    );
+  }
+});
+
+test("importTrackerData rejects non-object backup roots", () => {
+  assert.throws(() => importTrackerData("null"), /Import failed/);
+  assert.throws(() => importTrackerData("[]"), /Import failed/);
+});
